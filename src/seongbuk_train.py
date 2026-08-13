@@ -1,9 +1,6 @@
 import time
 import os
 import json
-import gc
-import shutil
-import tempfile
 import subprocess
 import pandas as pd
 import lightgbm as lgb
@@ -22,14 +19,14 @@ EXPERIMENTS_DIR = os.path.join(REPO_DIR, "experiments")
 AUTO_PUSH = True
 
 DATASET_LABEL = "seongbuk_2024"
-DATA_DIR = "/home/ubuntu/runyourai/kt/"
-
-# merge_data.py의 SAMPLE_EVERY_N_DAYS와 반드시 같은 값으로 맞춰주세요 (캐시 파일명이 여기서 결정됨)
-SAMPLE_EVERY_N_DAYS = None # None -> 전체 데이터 사용
 MERGED_CACHE_PATH = "/home/ubuntu/runyourai/kt/roster_seongbuk_2024_full_merged.parquet"
 
+# ── CPU 최대 활용 ────────────────────────────────────
+NUM_THREADS = os.cpu_count()
+print(f"사용 가능 CPU 코어 수: {NUM_THREADS}")
+
 # ── 하이퍼파라미터: A/B 공통 ────────────────────────
-N_ESTIMATORS = 1
+N_ESTIMATORS = 1  # 지금은 실험/파이프라인 확인용
 FEATURE_FRACTION = 1.0
 BAGGING_FRACTION = 1.0
 BAGGING_FREQ = 0
@@ -54,13 +51,7 @@ RUN_TS = datetime.now().strftime("%y.%m.%d.%H-%M-%S")
 RUN_DIR = os.path.join(EXPERIMENTS_DIR, RUN_TS)
 os.makedirs(RUN_DIR, exist_ok=True)
 
-def save_model_safely(booster, final_path):
-    tmp_dir = tempfile.mkdtemp(prefix="lgbm_")
-    tmp_path = os.path.join(tmp_dir, os.path.basename(final_path))
-    booster.save_model(tmp_path)
-    shutil.copy(tmp_path, final_path)
-    shutil.rmtree(tmp_dir, ignore_errors=True)
-
+# ── 로그 저장 설정 ──────────────────────────────────
 class Tee:
     def __init__(self, *files):
         self.files = files
@@ -76,7 +67,7 @@ log_path = os.path.join(RUN_DIR, "train_log.txt")
 log_file = open(log_path, "w", encoding="utf-8")
 sys.stdout = Tee(sys.stdout, log_file)
 
-# ── STEP 1: 병합된 데이터 불러오기 ───────────────────
+# ── STEP 1: 병합된 데이터 불러오기 (RAM 넉넉하니 그대로 통으로 로드) ──
 categorical_cols = ["route_id","board_stop_id","alight_stop_id","weekday","weather","bus_type_code"]
 numeric_cols = ["hour","is_holiday","headway_sec","seat_capacity"]
 feature_cols = categorical_cols + numeric_cols
@@ -84,10 +75,7 @@ feature_cols = categorical_cols + numeric_cols
 t0 = time.time()
 
 if not os.path.exists(MERGED_CACHE_PATH):
-    raise FileNotFoundError(
-        f"병합된 데이터가 없습니다: {MERGED_CACHE_PATH}\n"
-        f"먼저 merge_data.py를 실행해서 데이터를 병합해주세요."
-    )
+    raise FileNotFoundError(f"병합된 데이터가 없습니다: {MERGED_CACHE_PATH}")
 
 df = pd.read_parquet(MERGED_CACHE_PATH)
 print(f"로딩 시간: {time.time()-t0:.1f}초")
@@ -96,30 +84,30 @@ print(df.isna().sum())
 
 # ── STEP 2: 결측치 처리 ──────────────────────────────
 df = df[df["alight_stop_id"].notna()]
-print("결측 제외 후:", df.shape)
-
 df["y_standing"] = (df["is_standing"] == "Y").astype(int)
+print("결측 제외 후:", df.shape)
 print(df["y_standing"].value_counts())
 
-# ── STEP 3: 모델B용 데이터를 먼저 작게 뽑아둠 (메모리 절약 핵심) ──
-# df 전체(수 GB)를 계속 들고 있는 대신, 입석(Y)인 행만 미리 추려서
-# 작은 사본을 만들어두고, 아래에서 df 자체는 곧 삭제합니다.
-standing_slim = df.loc[
-    df["y_standing"] == 1,
-    feature_cols + ["board_datetime", "standing_seconds"]
-].copy()
-print(f"\n[모델B용 사전 추출] 입석 행: {len(standing_slim):,}")
-
-# ── STEP 4: 학습/검증 분리 (모델A) ───────────────────
+# ── STEP 3: 학습/검증 분리 ────────────────────────────
 if USE_TEMPORAL_SPLIT:
     print(f"\n검증 방식: 시간분할 (기준시각={TEMPORAL_CUTOFF})")
     cutoff = pd.Timestamp(TEMPORAL_CUTOFF)
     train_mask = df["board_datetime"] < cutoff
+
     X_train = df.loc[train_mask, feature_cols]
     y_train = df.loc[train_mask, "y_standing"]
     X_test = df.loc[~train_mask, feature_cols]
     y_test = df.loc[~train_mask, "y_standing"]
-    print(f"학습 행: {len(X_train):,} / 검증 행: {len(X_test):,}")
+
+    standing_train_mask = train_mask & (df["y_standing"] == 1)
+    standing_test_mask = (~train_mask) & (df["y_standing"] == 1)
+    Xb_train = df.loc[standing_train_mask, feature_cols]
+    yb_train = df.loc[standing_train_mask, "standing_seconds"]
+    Xb_test = df.loc[standing_test_mask, feature_cols]
+    yb_test = df.loc[standing_test_mask, "standing_seconds"]
+
+    print(f"[모델A] 학습 행: {len(X_train):,} / 검증 행: {len(X_test):,}")
+    print(f"[모델B] 학습 행: {len(Xb_train):,} / 검증 행: {len(Xb_test):,}")
 else:
     print("\n검증 방식: 랜덤분할 (random_state=42)")
     X = df[feature_cols]
@@ -127,20 +115,23 @@ else:
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
     )
+    standing_df = df[df["y_standing"] == 1]
+    Xb = standing_df[feature_cols]
+    yb = standing_df["standing_seconds"]
+    Xb_train, Xb_test, yb_train, yb_test = train_test_split(
+        Xb, yb, test_size=0.2, random_state=42
+    )
 
-# df는 이제 필요한 부분을 다 뽑아냈으니 즉시 삭제해서 메모리 확보
+# RAM이 넉넉하니 df를 계속 들고 있어도 무방하지만, 습관적으로 정리
 del df
-gc.collect()
-print(f"df 삭제 완료, 메모리 확보 ({time.time()-t0:.1f}초 경과)")
 
-# ── STEP 5: 모델A 학습 (입석여부 분류) ───────────────
+# ── STEP 4: 모델A 학습 (입석여부 분류) ───────────────
 wandb.init(
     project="bus-standing-prediction",
     name=f"model_a_{DATASET_LABEL}_{N_ESTIMATORS}trees_{'temporal' if USE_TEMPORAL_SPLIT else 'random'}_{RUN_TS}",
     config={
         "model": "A_classifier",
         "dataset_label": DATASET_LABEL,
-        "sample_every_n_days": SAMPLE_EVERY_N_DAYS,
         "n_estimators": N_ESTIMATORS,
         "learning_rate": LEARNING_RATE_A,
         "num_leaves": NUM_LEAVES_A,
@@ -149,6 +140,7 @@ wandb.init(
         "bagging_fraction": BAGGING_FRACTION,
         "bagging_freq": BAGGING_FREQ,
         "reg_lambda": REG_LAMBDA_A,
+        "num_threads": NUM_THREADS,
         "split_type": "temporal" if USE_TEMPORAL_SPLIT else "random",
         "train_rows": len(X_train),
         "features": feature_cols,
@@ -164,6 +156,8 @@ model_a = lgb.LGBMClassifier(
     bagging_fraction=BAGGING_FRACTION,
     bagging_freq=BAGGING_FREQ,
     reg_lambda=REG_LAMBDA_A,
+    n_jobs=NUM_THREADS,
+    force_col_wise=True,  # 코어 많은 환경에서 스레드 분배 오버헤드 자동 탐지 스킵 (속도 개선)
 )
 model_a.fit(
     X_train, y_train,
@@ -210,39 +204,20 @@ wandb.log({
 })
 
 model_a_path = os.path.join(RUN_DIR, "model_a.txt")
-save_model_safely(model_a.booster_, model_a_path)
+model_a.booster_.save_model(model_a_path)  # 리눅스 경로엔 한글이 없어서 우회 저장 불필요
 
 artifact_a = wandb.Artifact("model_a", type="model")
 artifact_a.add_file(model_a_path)
 wandb.log_artifact(artifact_a)
 wandb.finish()
 
-# 모델A 학습에 썼던 X_train/X_test도 이제 필요 없으니 정리
-del X_train, X_test, y_train, y_test
-gc.collect()
-
-# ── STEP 6: 모델B 학습 (입석시간 회귀) — STEP3에서 미리 뽑아둔 걸 사용 ──
-if USE_TEMPORAL_SPLIT:
-    train_mask_b = standing_slim["board_datetime"] < cutoff
-    Xb_train = standing_slim.loc[train_mask_b, feature_cols]
-    yb_train = standing_slim.loc[train_mask_b, "standing_seconds"]
-    Xb_test = standing_slim.loc[~train_mask_b, feature_cols]
-    yb_test = standing_slim.loc[~train_mask_b, "standing_seconds"]
-    print(f"\n[모델B] 학습 행: {len(Xb_train):,} / 검증 행: {len(Xb_test):,}")
-else:
-    Xb = standing_slim[feature_cols]
-    yb = standing_slim["standing_seconds"]
-    Xb_train, Xb_test, yb_train, yb_test = train_test_split(
-        Xb, yb, test_size=0.2, random_state=42
-    )
-
+# ── STEP 5: 모델B 학습 (입석시간 회귀) ───────────────
 wandb.init(
     project="bus-standing-prediction",
     name=f"model_b_{DATASET_LABEL}_{N_ESTIMATORS}trees_{'temporal' if USE_TEMPORAL_SPLIT else 'random'}_{RUN_TS}",
     config={
         "model": "B_regressor",
         "dataset_label": DATASET_LABEL,
-        "sample_every_n_days": SAMPLE_EVERY_N_DAYS,
         "n_estimators": N_ESTIMATORS,
         "learning_rate": LEARNING_RATE_B,
         "num_leaves": NUM_LEAVES_B,
@@ -251,6 +226,7 @@ wandb.init(
         "bagging_fraction": BAGGING_FRACTION,
         "bagging_freq": BAGGING_FREQ,
         "reg_lambda": REG_LAMBDA_B,
+        "num_threads": NUM_THREADS,
         "split_type": "temporal" if USE_TEMPORAL_SPLIT else "random",
         "train_rows": len(Xb_train),
         "features": feature_cols,
@@ -266,6 +242,8 @@ model_b = lgb.LGBMRegressor(
     bagging_fraction=BAGGING_FRACTION,
     bagging_freq=BAGGING_FREQ,
     reg_lambda=REG_LAMBDA_B,
+    n_jobs=NUM_THREADS,
+    force_col_wise=True,
 )
 model_b.fit(
     Xb_train, yb_train,
@@ -310,7 +288,7 @@ wandb.log({
 })
 
 model_b_path = os.path.join(RUN_DIR, "model_b.txt")
-save_model_safely(model_b.booster_, model_b_path)
+model_b.booster_.save_model(model_b_path)
 
 artifact_b = wandb.Artifact("model_b", type="model")
 artifact_b.add_file(model_b_path)
@@ -319,11 +297,11 @@ wandb.finish()
 
 print(f"\n저장 완료: {model_a_path}, {model_b_path}")
 
-# ── STEP 7: metrics.json 저장 ─────────────────────────
+# ── STEP 6: metrics.json 저장 ─────────────────────────
 metrics = {
     "run_ts": RUN_TS,
     "dataset_label": DATASET_LABEL,
-    "sample_every_n_days": SAMPLE_EVERY_N_DAYS,
+    "num_threads": NUM_THREADS,
     "n_estimators": N_ESTIMATORS,
     "feature_fraction": FEATURE_FRACTION,
     "bagging_fraction": BAGGING_FRACTION,
@@ -350,11 +328,11 @@ with open(metrics_path, "w", encoding="utf-8") as f:
     json.dump(metrics, f, ensure_ascii=False, indent=2)
 print(f"metrics.json 저장 완료: {metrics_path}")
 
-# ── STEP 8: 로그 파일 닫고 stdout 원복 ──────────────
+# ── STEP 7: 로그 파일 닫고 stdout 원복 ──────────────
 sys.stdout = sys.stdout.files[0]
 log_file.close()
 
-# ── STEP 9: Git add + commit + push ──────────────────
+# ── STEP 8: Git add + commit + push ──────────────────
 def run_git(args):
     result = subprocess.run(
         ["git"] + args, cwd=REPO_DIR,
@@ -371,7 +349,7 @@ rel_path = os.path.relpath(RUN_DIR, REPO_DIR)
 if AUTO_PUSH:
     ok = run_git(["add", rel_path])
     if ok:
-        ok = run_git(["commit", "-m", f"Add experiment result {RUN_TS} ({DATASET_LABEL}, split={'temporal' if USE_TEMPORAL_SPLIT else 'random'}, A: lr={LEARNING_RATE_A}/leaves={NUM_LEAVES_A}/min_child={MIN_CHILD_SAMPLES_A}/lambda={REG_LAMBDA_A}, B: lr={LEARNING_RATE_B}/leaves={NUM_LEAVES_B}/min_child={MIN_CHILD_SAMPLES_B}/lambda={REG_LAMBDA_B}, AUC={auc_a:.4f}, MAE={mae:.1f}s)"])
+        ok = run_git(["commit", "-m", f"Add experiment result {RUN_TS} ({DATASET_LABEL}, threads={NUM_THREADS}, A: lr={LEARNING_RATE_A}/leaves={NUM_LEAVES_A}, B: lr={LEARNING_RATE_B}/leaves={NUM_LEAVES_B}, AUC={auc_a:.4f}, MAE={mae:.1f}s)"])
     if ok:
         ok = run_git(["push"])
     if ok:
@@ -379,4 +357,4 @@ if AUTO_PUSH:
     else:
         print(f"\n⚠ 자동 push 실패 — 수동으로 'git add {rel_path} && git commit && git push' 실행 필요")
 else:
-    print(f"\n(AUTO_PUSH 꺼짐) experiments/{RUN_TS}/ 폴더 생성만 완료 — 확인 후 AUTO_PUSH=True로 바꿔서 재실행하거나 수동으로 git add/commit/push 하세요.")
+    print(f"\n(AUTO_PUSH 꺼짐)")
