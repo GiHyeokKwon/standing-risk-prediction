@@ -1,0 +1,64 @@
+{
+  "run_ts": "26.08.13.20-41-34",
+  "dataset_label": "seongbuk_2024",
+  "num_threads": 64,
+  "n_estimators": 1000,
+  "features_trimmed": true,
+  "features": [
+    "route_id",
+    "board_stop_id",
+    "alight_stop_id",
+    "weekday",
+    "weather",
+    "hour",
+    "is_holiday",
+    "headway_sec"
+  ],
+  "feature_fraction": 1.0,
+  "bagging_fraction": 1.0,
+  "bagging_freq": 0,
+  "learning_rate_a": 0.1,
+  "reg_lambda_a": 0.0,
+  "num_leaves_a": 31,
+  "min_child_samples_a": 20,
+  "learning_rate_b": 0.1,
+  "reg_lambda_b": 0.0,
+  "num_leaves_b": 31,
+  "min_child_samples_b": 20,
+  "split_type": "temporal",
+  "temporal_cutoff": "2024-12-01 00:00:00",
+  "train_rows_a": 304204300,
+  "train_rows_b": 55256328,
+  "model_a": {
+    "auc": 0.9141429806350085,
+    "accuracy": 0.8812108089278613,
+    "fit_seconds": 3920.2995541095734,
+    "actual_trees": 1000
+  },
+  "model_b": {
+    "mae": 158.3486038447357,
+    "rmse": 243.11402235212125,
+    "fit_seconds": 572.5864655971527,
+    "actual_trees": 1000
+  },
+  "feature_importance_a_gain": {
+    "board_stop_id": 355974030.2755356,
+    "hour": 135878870.00933838,
+    "route_id": 110894433.22745514,
+    "weekday": 33904229.22354889,
+    "headway_sec": 22077244.2035141,
+    "alight_stop_id": 19822610.950393677,
+    "is_holiday": 6162677.700180054,
+    "weather": 1197951.5402755737
+  },
+  "feature_importance_b_gain": {
+    "board_stop_id": 7966714674026.0,
+    "alight_stop_id": 4408424239540.0,
+    "route_id": 1595783010222.0,
+    "hour": 1213386287020.0,
+    "weekday": 229352608254.0,
+    "headway_sec": 204408124932.0,
+    "is_holiday": 31061619090.0,
+    "weather": 8381202204.0
+  }
+}
