@@ -1,0 +1,50 @@
+{
+  "run_ts": "26.08.20.15-32-18",
+  "run_label": "deploy_final",
+  "dataset_label": "seongbuk_2024",
+  "num_threads": 64,
+  "n_estimators": 3000,
+  "feature_fraction": 1.0,
+  "bagging_fraction": 1.0,
+  "bagging_freq": 0,
+  "learning_rate_a": 0.1,
+  "reg_lambda_a": 0.0,
+  "num_leaves_a": 127,
+  "min_child_samples_a": 20,
+  "learning_rate_b": 0.1,
+  "reg_lambda_b": 0.0,
+  "num_leaves_b": 127,
+  "min_child_samples_b": 20,
+  "split_type": "none_full_train",
+  "note": "배포용 최종 모델 — 검증 홀드아웃 없이 1~12월 전체 데이터로 학습. 성능 지표(AUC/MAE 등)는 이전 시간분할 검증 실험(12월 홀드아웃) 결과를 참조.",
+  "train_rows_a": 332796590,
+  "train_rows_b": 60401011,
+  "model_a": {
+    "fit_seconds": 23213.644805669785,
+    "trees": 3000
+  },
+  "model_b": {
+    "fit_seconds": 1509.1154158115387,
+    "trees": 3000
+  },
+  "feature_importance_a_gain": {
+    "headway_sec": 59442513653.66941,
+    "hour": 21965579625.184418,
+    "board_stop_id": 443706217.2420726,
+    "route_id": 109576166.10015845,
+    "is_holiday": 49668961.631424904,
+    "weekday": 39150863.310972214,
+    "alight_stop_id": 26454631.864842415,
+    "weather": 1671043.2298903465
+  },
+  "feature_importance_b_gain": {
+    "board_stop_id": 8661547704591.0,
+    "alight_stop_id": 5845301915303.0,
+    "hour": 1694131270866.0,
+    "route_id": 1679939649788.0,
+    "headway_sec": 427191588072.0,
+    "weekday": 334646663237.0,
+    "is_holiday": 47939302499.0,
+    "weather": 38827842154.0
+  }
+}

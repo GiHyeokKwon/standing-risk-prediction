@@ -1,0 +1,196 @@
+로딩 시간: 328.0초
+(339772066, 14)
+route_id                                 0
+board_stop_id                            0
+alight_stop_id                     6975476
+weekday                                  0
+weather                                  0
+bus_type_code                            0
+hour                                     0
+is_holiday                               0
+headway_sec                        3503852
+seat_capacity                            0
+board_datetime                           0
+is_standing                              0
+standing_seconds                      1338
+sample_count_route_segment_hour          0
+dtype: int64
+결측 제외 후: (332796590, 15)
+y_standing
+0    272395579
+1     60401011
+Name: count, dtype: int64
+
+[배포용 전체 학습] 모델A 학습 행: 332,796,590
+[배포용 전체 학습] 모델B 학습 행: 60,401,011
+[LightGBM] [Warning] feature_fraction is set=1.0, colsample_bytree=1.0 will be ignored. Current value: feature_fraction=1.0
+[LightGBM] [Warning] bagging_fraction is set=1.0, subsample=1.0 will be ignored. Current value: bagging_fraction=1.0
+[LightGBM] [Warning] bagging_freq is set=0, subsample_freq=0 will be ignored. Current value: bagging_freq=0
+[LightGBM] [Warning] Categorical features with more bins than the configured maximum bin number found.
+[LightGBM] [Warning] For categorical features, max_bin and max_bin_by_feature may be ignored with a large number of categories.
+[LightGBM] [Warning] feature_fraction is set=1.0, colsample_bytree=1.0 will be ignored. Current value: feature_fraction=1.0
+[LightGBM] [Warning] bagging_fraction is set=1.0, subsample=1.0 will be ignored. Current value: bagging_fraction=1.0
+[LightGBM] [Warning] bagging_freq is set=0, subsample_freq=0 will be ignored. Current value: bagging_freq=0
+[LightGBM] [Info] Number of positive: 60401011, number of negative: 272395579
+[LightGBM] [Info] Total Bins 4986
+[LightGBM] [Info] Number of data points in the train set: 332796590, number of used features: 8
+[LightGBM] [Info] [binary:BoostFromScore]: pavg=0.181495 -> initscore=-1.506250
+[LightGBM] [Info] Start training from score -1.506250
+[50]	train's binary_logloss: 0.284688
+[100]	train's binary_logloss: 0.269818
+[150]	train's binary_logloss: 0.264156
+[200]	train's binary_logloss: 0.261248
+[250]	train's binary_logloss: 0.259324
+[300]	train's binary_logloss: 0.257882
+[350]	train's binary_logloss: 0.256795
+[400]	train's binary_logloss: 0.255883
+[450]	train's binary_logloss: 0.255158
+[500]	train's binary_logloss: 0.254561
+[550]	train's binary_logloss: 0.253993
+[600]	train's binary_logloss: 0.253555
+[650]	train's binary_logloss: 0.253142
+[700]	train's binary_logloss: 0.252749
+[750]	train's binary_logloss: 0.252351
+[800]	train's binary_logloss: 0.251994
+[850]	train's binary_logloss: 0.251658
+[900]	train's binary_logloss: 0.25139
+[950]	train's binary_logloss: 0.25115
+[1000]	train's binary_logloss: 0.250995
+[1050]	train's binary_logloss: 0.250851
+[1100]	train's binary_logloss: 0.250602
+[1150]	train's binary_logloss: 0.250361
+[1200]	train's binary_logloss: 0.250174
+[1250]	train's binary_logloss: 0.249973
+[1300]	train's binary_logloss: 0.2497
+[1350]	train's binary_logloss: 0.249535
+[1400]	train's binary_logloss: 0.249414
+[1450]	train's binary_logloss: 0.249331
+[1500]	train's binary_logloss: 0.249198
+[1550]	train's binary_logloss: 0.249059
+[1600]	train's binary_logloss: 0.248952
+[1650]	train's binary_logloss: 0.248828
+[1700]	train's binary_logloss: 0.248725
+[1750]	train's binary_logloss: 0.248598
+[1800]	train's binary_logloss: 0.248503
+[1850]	train's binary_logloss: 0.248497
+[1900]	train's binary_logloss: 0.248341
+[1950]	train's binary_logloss: 0.248368
+[2000]	train's binary_logloss: 0.248265
+[2050]	train's binary_logloss: 0.24818
+[2100]	train's binary_logloss: 0.248034
+[2150]	train's binary_logloss: 0.24793
+[2200]	train's binary_logloss: 0.247887
+[2250]	train's binary_logloss: 0.247898
+[2300]	train's binary_logloss: 0.247759
+[2350]	train's binary_logloss: 0.247698
+[2400]	train's binary_logloss: 0.247585
+[2450]	train's binary_logloss: 0.247525
+[2500]	train's binary_logloss: 0.247455
+[2550]	train's binary_logloss: 0.247418
+[2600]	train's binary_logloss: 0.247423
+[2650]	train's binary_logloss: 0.247352
+[2700]	train's binary_logloss: 0.247275
+[2750]	train's binary_logloss: 0.247193
+[2800]	train's binary_logloss: 0.247175
+[2850]	train's binary_logloss: 0.247132
+[2900]	train's binary_logloss: 0.247095
+[2950]	train's binary_logloss: 0.247027
+[3000]	train's binary_logloss: 0.246991
+[모델A] 학습 소요시간: 23213.6초, 트리 수: 3000 (전량 사용, 조기종료 없음)
+
+[모델A 피처 중요도 - gain]
+headway_sec       5.944251e+10
+hour              2.196558e+10
+board_stop_id     4.437062e+08
+route_id          1.095762e+08
+is_holiday        4.966896e+07
+weekday           3.915086e+07
+alight_stop_id    2.645463e+07
+weather           1.671043e+06
+dtype: float64
+[LightGBM] [Warning] feature_fraction is set=1.0, colsample_bytree=1.0 will be ignored. Current value: feature_fraction=1.0
+[LightGBM] [Warning] bagging_fraction is set=1.0, subsample=1.0 will be ignored. Current value: bagging_fraction=1.0
+[LightGBM] [Warning] bagging_freq is set=0, subsample_freq=0 will be ignored. Current value: bagging_freq=0
+[LightGBM] [Warning] Categorical features with more bins than the configured maximum bin number found.
+[LightGBM] [Warning] For categorical features, max_bin and max_bin_by_feature may be ignored with a large number of categories.
+[LightGBM] [Warning] feature_fraction is set=1.0, colsample_bytree=1.0 will be ignored. Current value: feature_fraction=1.0
+[LightGBM] [Warning] bagging_fraction is set=1.0, subsample=1.0 will be ignored. Current value: bagging_fraction=1.0
+[LightGBM] [Warning] bagging_freq is set=0, subsample_freq=0 will be ignored. Current value: bagging_freq=0
+[LightGBM] [Info] Total Bins 3948
+[LightGBM] [Info] Number of data points in the train set: 60401011, number of used features: 8
+[LightGBM] [Info] Start training from score 356.539658
+[50]	train's l2: 56501.2
+[100]	train's l2: 52615
+[150]	train's l2: 51236.1
+[200]	train's l2: 50509.8
+[250]	train's l2: 50039.2
+[300]	train's l2: 49690.8
+[350]	train's l2: 49406.6
+[400]	train's l2: 49139.8
+[450]	train's l2: 48951
+[500]	train's l2: 48762.7
+[550]	train's l2: 48609.7
+[600]	train's l2: 48471.6
+[650]	train's l2: 48354.3
+[700]	train's l2: 48224.4
+[750]	train's l2: 48126.8
+[800]	train's l2: 48042.1
+[850]	train's l2: 47971.5
+[900]	train's l2: 47882.6
+[950]	train's l2: 47799.2
+[1000]	train's l2: 47726.3
+[1050]	train's l2: 47627.7
+[1100]	train's l2: 47530.8
+[1150]	train's l2: 47444.3
+[1200]	train's l2: 47366.8
+[1250]	train's l2: 47273.4
+[1300]	train's l2: 47197.7
+[1350]	train's l2: 47150.1
+[1400]	train's l2: 47097.1
+[1450]	train's l2: 47044.6
+[1500]	train's l2: 46998.2
+[1550]	train's l2: 46963
+[1600]	train's l2: 46926.4
+[1650]	train's l2: 46864.2
+[1700]	train's l2: 46803
+[1750]	train's l2: 46764.3
+[1800]	train's l2: 46724.9
+[1850]	train's l2: 46678.9
+[1900]	train's l2: 46637.4
+[1950]	train's l2: 46597.3
+[2000]	train's l2: 46551.7
+[2050]	train's l2: 46511.3
+[2100]	train's l2: 46472.6
+[2150]	train's l2: 46428.8
+[2200]	train's l2: 46393.6
+[2250]	train's l2: 46365.6
+[2300]	train's l2: 46319.6
+[2350]	train's l2: 46283.6
+[2400]	train's l2: 46254.3
+[2450]	train's l2: 46220.7
+[2500]	train's l2: 46180.6
+[2550]	train's l2: 46145.2
+[2600]	train's l2: 46099.3
+[2650]	train's l2: 46058.8
+[2700]	train's l2: 46013.4
+[2750]	train's l2: 45982.9
+[2800]	train's l2: 45957.7
+[2850]	train's l2: 45923.5
+[2900]	train's l2: 45891.8
+[2950]	train's l2: 45868.6
+[3000]	train's l2: 45841.1
+[모델B] 학습 소요시간: 1509.1초, 트리 수: 3000 (전량 사용, 조기종료 없음)
+
+[모델B 피처 중요도 - gain]
+board_stop_id     8.661548e+12
+alight_stop_id    5.845302e+12
+hour              1.694131e+12
+route_id          1.679940e+12
+headway_sec       4.271916e+11
+weekday           3.346467e+11
+is_holiday        4.793930e+10
+weather           3.882784e+10
+dtype: float64
+
+저장 완료: /home/ubuntu/runyourai/kt/KT-DINJAE-2026-AI/experiments/26.08.20.15-32-18/model_a.txt, /home/ubuntu/runyourai/kt/KT-DINJAE-2026-AI/experiments/26.08.20.15-32-18/model_b.txt
+metrics.json 저장 완료: /home/ubuntu/runyourai/kt/KT-DINJAE-2026-AI/experiments/26.08.20.15-32-18/metrics.json
