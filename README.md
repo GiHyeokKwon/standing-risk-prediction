@@ -66,6 +66,10 @@ Java (Spring), so models were converted to **PMML** for delivery.
 2. Extracted integer code mappings for categorical features (stop IDs, route IDs, etc.) directly from the model files and delivered them alongside the PMML files
 3. Generated **20 golden test samples** (common / rare / boundary cases) to cross-validate that Python's original predictions match the PMML (Java) predictions with the backend team
 
+## Presentation
+
+[View Project Presentation (PDF)](docs/presentation.pdf)
+
 ## Structure
 
 ```text
