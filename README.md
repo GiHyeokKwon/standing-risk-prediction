@@ -91,6 +91,3 @@ python src/train.py
 python src/train_deploy.py
 ```
 
-  메모리 최적화(스트리밍 처리, 청크 단위 로딩)가 함께 필요했다.
-- 프레임워크 간(Python ↔ Java) 모델 이관에서는 변환 자체보다 **검증**이 핵심이었다 —
-  golden test처럼 결과를 대조할 수 있는 절차를 마련해두는 것이 실제 배포 신뢰성을 좌우했다.
