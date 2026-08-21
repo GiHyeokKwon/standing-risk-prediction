@@ -69,14 +69,18 @@ KT · Korea Road Traffic Authority · Korea (May. 2026 ~ Aug. 2026)
 ├── src/
 │   ├── merge_data.py                       # 일별 원시 데이터를 하나의 parquet으로 병합
 │   ├── train.py                            # 검증용 학습 (시간분할, 하이퍼파라미터 실험)
-│   └── train_deploy.py                     # 배포용 최종 학습 (전체 기간, 검증 없이 재학습)
+│   ├── train_deploy.py                     # 배포용 최종 학습 (전체 기간)
+│   ├── category_code.py                    # 학습된 모델에서 범주형 피처 코드 매핑표 추출
+│   └── golden_test_samples.py              # PMML 변환 검증용 입력-출력 샘플 세트 생성
 ├── experiments/
 │   └── {실행시각}/
 │       ├── train_log.txt
 │       ├── metrics.json
 │       ├── model_a.pmml / model_b.pmml
-│       └── category_code_mapping_model_a.json / _model_b.json
+│       ├── category_code_mapping_model_a.json / _model_b.json
+│       └── golden_test_samples.json
 ├── .gitignore
+├── LICENSE
 └── requirements.txt
 ```
 
@@ -93,5 +97,11 @@ python src/train.py
 
 # 3. 배포용 최종 학습 (검증 없이 전체 기간 학습)
 python src/train_deploy.py
+
+# 4. 범주형 피처 코드 매핑표 추출
+python src/category_code.py
+
+# 5. PMML 변환 검증용 golden test 샘플 생성
+python src/golden_test_samples.py
 ```
 
