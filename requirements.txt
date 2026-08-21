@@ -1,5 +1,5 @@
-pandas
-lightgbm
-scikit-learn
-pyarrow
-wandb
+lightgbm>=4.0
+pandas>=2.0
+pyarrow>=14.0
+scikit-learn>=1.3
+wandb>=0.16
