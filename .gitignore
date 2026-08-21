@@ -1,23 +1,30 @@
-# 실제 학습 데이터
+# 데이터
 *.parquet
-!schema/TCD_학습용명부_예시스펙.parquet
+!schema/*.parquet
 
-# 학습된 모델 아티팩트
-models/
+# 학습된 모델 (대용량, 별도 관리)
 *.txt
 !requirements.txt
-!experiments/**/*.txt
-experiments/**/model_a.txt
-experiments/**/model_b.txt
 
-# wandb 로컬 캐시/로그 (실제 기록은 wandb.ai 클라우드에 있음)
+# wandb 로컬 캐시
 wandb/
 
-# 파이썬 캐시
+# Python
 __pycache__/
 *.pyc
+*.pyo
 .ipynb_checkpoints/
+*.egg-info/
 
 # 가상환경
 .venv/
 venv/
+env/
+
+# OS/에디터
+.DS_Store
+.vscode/
+.idea/
+
+# 로그
+*.log
