@@ -67,7 +67,7 @@ log_path = os.path.join(RUN_DIR, "train_log.txt")
 log_file = open(log_path, "w", encoding="utf-8")
 sys.stdout = Tee(sys.stdout, log_file)
 
-# ── STEP 1: 병합된 데이터 불러오기 (RAM 넉넉하니 그대로 통으로 로드) ──
+# ── STEP 1: 병합된 데이터 불러오기  ───────────────────
 categorical_cols = ["route_id","board_stop_id","alight_stop_id","weekday","weather","bus_type_code"]
 numeric_cols = ["hour","is_holiday","headway_sec","seat_capacity"]
 feature_cols = categorical_cols + numeric_cols
@@ -204,7 +204,7 @@ wandb.log({
 })
 
 model_a_path = os.path.join(RUN_DIR, "model_a.txt")
-model_a.booster_.save_model(model_a_path)  # 리눅스 경로엔 한글이 없어서 우회 저장 불필요
+model_a.booster_.save_model(model_a_path)  
 
 artifact_a = wandb.Artifact("model_a", type="model")
 artifact_a.add_file(model_a_path)
