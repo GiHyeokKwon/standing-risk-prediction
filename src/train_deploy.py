@@ -23,13 +23,13 @@ EXPERIMENTS_DIR = os.path.join(REPO_DIR, "experiments")
 AUTO_PUSH = True
 
 DATASET_LABEL = "seongbuk_2024"
-RUN_LABEL = "deploy_final"  # 배포용 최종 학습임을 명시
+RUN_LABEL = "deploy_final"  
 MERGED_CACHE_PATH = "/home/ubuntu/runyourai/kt/KT-DINJAE-2026-AI/roster_seongbuk_2024_full_merged.parquet"
 
 NUM_THREADS = os.cpu_count()
 print(f"사용 가능 CPU 코어 수: {NUM_THREADS}")
 
-# ── 하이퍼파라미터: 배포용 (검증셋 없이 전체 학습) ────
+# ── 하이퍼파라미터: 배포용 ──────────────────────────────
 N_ESTIMATORS = 3000
 FEATURE_FRACTION = 1.0
 BAGGING_FRACTION = 1.0
@@ -86,7 +86,7 @@ df["y_standing"] = (df["is_standing"] == "Y").astype(int)
 print("결측 제외 후:", df.shape)
 print(df["y_standing"].value_counts())
 
-# ── STEP 3: 전체를 학습에 사용 (배포용 — 검증 분할 없음) ──
+# ── STEP 3: 전체를 학습에 사용 ────────────────────────
 X_train = df[feature_cols]
 y_train = df["y_standing"]
 
@@ -99,7 +99,7 @@ print(f"[배포용 전체 학습] 모델B 학습 행: {len(Xb_train):,}")
 
 del df, standing_df
 
-# ── STEP 4: 모델A 학습 (검증셋 없이, early stopping 없이 5000트리 고정) ──
+# ── STEP 4: 모델A 학습 ────────────────────────────────
 wandb.init(
     project="bus-standing-prediction",
     name=f"model_a_{DATASET_LABEL}_{RUN_LABEL}_{N_ESTIMATORS}trees_{RUN_TS}",
@@ -139,7 +139,7 @@ t_fit_start = time.time()
 model_a.fit(
     X_train, y_train,
     categorical_feature=categorical_cols,
-    eval_set=[(X_train, y_train)],   # 진행상황 모니터링용 (train self-eval, 조기종료 없음)
+    eval_set=[(X_train, y_train)],   
     eval_names=['train'],
     callbacks=[
         lgb.log_evaluation(50),
@@ -173,7 +173,7 @@ artifact_a.add_file(model_a_path)
 wandb.log_artifact(artifact_a)
 wandb.finish()
 
-# ── STEP 5: 모델B 학습 (검증셋 없이, early stopping 없이 5000트리 고정) ──
+# ── STEP 5: 모델B 학습 ────────────────────────────────
 wandb.init(
     project="bus-standing-prediction",
     name=f"model_b_{DATASET_LABEL}_{RUN_LABEL}_{N_ESTIMATORS}trees_{RUN_TS}",
