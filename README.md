@@ -1,3 +1,7 @@
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Python](https://img.shields.io/badge/Python-3.12-blue.svg)
+![LightGBM](https://img.shields.io/badge/LightGBM-4.x-green.svg)
+
 # Standing Risk Prediction
 
 **Design of a QR-Based Standing Passenger Risk Notification Service Using AI Models
